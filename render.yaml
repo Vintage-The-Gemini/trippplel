@@ -1,4 +1,5 @@
 services:
+  # ── Express Backend ──────────────────────────────────────
   - type: web
     name: trippplel-server
     runtime: node
@@ -25,3 +26,16 @@ services:
       - key: CLOUDINARY_API_SECRET
         sync: false
     healthCheckPath: /api/health
+
+  # ── Next.js Frontend ─────────────────────────────────────
+  - type: web
+    name: trippplel-client
+    runtime: node
+    rootDir: Trippplel/client
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        sync: false
