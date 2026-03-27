@@ -1,0 +1,123 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Base ─────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: #ffffff;
+  color: #000000;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Custom scrollbar ──────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: #000; border-radius: 2px; }
+
+/* ─── Component classes ─────────────────────────────────────── */
+@layer components {
+
+  /* Buttons */
+  .btn-primary {
+    @apply bg-black text-white px-8 py-4 font-bold tracking-[0.15em] uppercase text-xs
+           hover:bg-accent hover:text-black transition-all duration-200 active:scale-95
+           inline-block text-center cursor-pointer;
+  }
+  .btn-outline {
+    @apply border-2 border-black text-black px-8 py-4 font-bold tracking-[0.15em] uppercase text-xs
+           hover:bg-black hover:text-white transition-all duration-200 active:scale-95
+           inline-block text-center cursor-pointer;
+  }
+  .btn-accent {
+    @apply bg-accent text-black px-8 py-4 font-bold tracking-[0.15em] uppercase text-xs
+           hover:bg-yellow-300 transition-all duration-200 active:scale-95
+           inline-block text-center cursor-pointer;
+  }
+
+  /* Product card */
+  .product-card {
+    @apply relative overflow-hidden cursor-pointer;
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-block px-2 py-1 text-[10px] font-black uppercase tracking-[0.2em];
+  }
+
+  /* Section label */
+  .section-label {
+    @apply text-[10px] font-bold tracking-[0.4em] uppercase text-gray-400 mb-2 block;
+  }
+
+  /* Display heading */
+  .display {
+    font-family: 'Bebas Neue', sans-serif;
+    @apply uppercase tracking-wide leading-none;
+  }
+
+  /* Input */
+  .input {
+    @apply w-full border border-gray-200 px-4 py-3 text-sm
+           focus:outline-none focus:border-black transition-colors
+           placeholder:text-gray-400;
+  }
+}
+
+/* ─── Announcement bar marquee ──────────────────────────────── */
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 22s linear infinite;
+}
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* ─── Hover quick-add (plain CSS — @apply can't use group-hover) ── */
+.quick-add {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: #000;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 0.75rem;
+  text-align: center;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+  cursor: pointer;
+  border: none;
+  width: 100%;
+}
+.group:hover .quick-add {
+  transform: translateY(0);
+}
+
+/* ─── Image swap on hover ───────────────────────────────────── */
+.img-hover-swap .img-primary {
+  opacity: 1;
+  transition: opacity 0.5s ease;
+}
+.img-hover-swap:hover .img-primary {
+  opacity: 0;
+}
+.img-hover-swap .img-secondary {
+  opacity: 0;
+  position: absolute;
+  inset: 0;
+  transition: opacity 0.5s ease;
+}
+.img-hover-swap:hover .img-secondary {
+  opacity: 1;
+}

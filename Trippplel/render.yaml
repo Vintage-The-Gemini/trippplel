@@ -1,0 +1,28 @@
+services:
+  # ── Express Backend ──────────────────────────────────────
+  - type: web
+    name: trippplel-server
+    runtime: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: MONGODB_URI
+        sync: false   # set manually in Render dashboard
+      - key: JWT_SECRET
+        sync: false
+      - key: CLIENT_URL
+        sync: false   # your Vercel frontend URL
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+    healthCheckPath: /api/health

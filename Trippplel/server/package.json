@@ -1,0 +1,30 @@
+{
+  "name": "trippplel-server",
+  "version": "1.0.0",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "seed": "node src/seed.js",
+    "upload": "node src/uploadToCloudinary.js",
+    "seed:cloud": "node src/seedCloud.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "mongoose": "^8.3.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "stripe": "^15.5.0",
+    "cloudinary": "^2.2.0",
+    "multer": "^1.4.5-lts.1",
+    "express-validator": "^7.1.0",
+    "cookie-parser": "^1.4.6",
+    "helmet": "^7.1.0",
+    "express-rate-limit": "^7.2.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}

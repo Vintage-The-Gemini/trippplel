@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Environment files — NEVER commit these
+.env
+.env.local
+.env.production
+
+# Next.js
+client/.next/
+client/out/
+
+# Build outputs
+server/dist/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Cloudinary URLs (generated file)
+server/src/cloudinaryUrls.json
+
+# WhatsApp images dropped into wrong folder
+client/src/app/products/WhatsApp*
