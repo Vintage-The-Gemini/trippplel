@@ -1,0 +1,17 @@
+# Old PrestaShop backup — never commit
+backup-3.21.2026_08-11-13_tripplel/
+
+# Claude settings
+.claude/
+CLAUDE.md
+
+# Generated files
+generate_report.py
+TrippleL_Store_Report.pdf
+
+# Node
+node_modules/
+
+# Env files
+.env
+.env.local
