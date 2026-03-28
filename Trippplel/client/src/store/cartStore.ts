@@ -82,6 +82,6 @@ export const useCartStore = create<CartStore>()(
       itemCount: () =>
         get().items.reduce((sum, item) => sum + item.quantity, 0),
     }),
-    { name: "trippplel-cart" }
+    { name: "tripppluxe-cart" }
   )
 );

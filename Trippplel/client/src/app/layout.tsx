@@ -5,13 +5,13 @@ import { Toaster } from "react-hot-toast";
 
 export const metadata: Metadata = {
   title: {
-    default: "Trippplel — Premium Streetwear",
-    template: "%s | Trippplel",
+    default: "Tripppluxe — Premium Streetwear",
+    template: "%s | Tripppluxe",
   },
   description: "Premium t-shirts and hoodies. Limited drops. Real culture.",
-  keywords: ["streetwear", "tshirts", "hoodies", "fashion", "trippplel"],
+  keywords: ["streetwear", "tshirts", "hoodies", "fashion", "tripppluxe"],
   openGraph: {
-    title: "Trippplel — Premium Streetwear",
+    title: "Tripppluxe — Premium Streetwear",
     description: "Premium t-shirts and hoodies. Limited drops. Real culture.",
     type: "website",
   },

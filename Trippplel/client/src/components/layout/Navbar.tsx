@@ -67,7 +67,7 @@ export default function Navbar() {
 
             {/* Logo */}
             <Link href="/" className="display text-2xl tracking-wider hover:text-gray-600 transition-colors">
-              TRIPPPLEL
+              TRIPPPLUXE
             </Link>
 
             {/* Desktop nav */}
@@ -100,7 +100,7 @@ export default function Navbar() {
       {menuOpen && (
         <div className="fixed inset-0 z-[60] bg-black flex flex-col animate-fadeIn">
           <div className="flex items-center justify-between px-6 py-5 border-b border-white/10">
-            <span className="display text-2xl text-white tracking-wider">TRIPPPLEL</span>
+            <span className="display text-2xl text-white tracking-wider">TRIPPPLUXE</span>
             <button onClick={() => setMenuOpen(false)} className="text-white p-2" aria-label="Close menu">
               <HiX size={26} />
             </button>

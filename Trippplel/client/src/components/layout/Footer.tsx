@@ -21,7 +21,7 @@ export default function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
 
           <div className="col-span-2 md:col-span-1">
-            <h2 className="display text-3xl text-white mb-3">TRIPPPLEL</h2>
+            <h2 className="display text-3xl text-white mb-3">TRIPPPLUXE</h2>
             <p className="text-gray-500 text-xs leading-relaxed max-w-[180px]">
               Premium streetwear. Limited drops. Real culture.
             </p>
@@ -82,7 +82,7 @@ export default function Footer() {
       <div className="border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row justify-between items-center gap-3">
           <p className="text-[10px] text-gray-600 tracking-[0.3em] uppercase">
-            © {new Date().getFullYear()} Trippplel. All rights reserved.
+            © {new Date().getFullYear()} Tripppluxe. All rights reserved.
           </p>
           <div className="flex gap-6">
             <Link href="/privacy" className="text-[10px] text-gray-600 hover:text-white transition-colors tracking-widest uppercase">Privacy</Link>

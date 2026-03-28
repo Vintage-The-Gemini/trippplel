@@ -5,7 +5,7 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "All Products",
-  description: "Shop all t-shirts and hoodies from Trippplel",
+  description: "Shop all t-shirts and hoodies from Tripppluxe",
 };
 
 async function fetchProducts(params: {
