@@ -11,6 +11,25 @@ const app = express();
 // Connect DB
 connectDB();
 
+// CORS must come first — before helmet and rate limiter
+// so preflight responses always include the correct headers
+const allowedOrigins = [
+  process.env.CLIENT_URL || "http://localhost:3000",
+  "http://localhost:3001",
+  "https://trippplel-client.onrender.com",
+];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions)); // handle preflight for all routes
+
 // Security middleware
 app.use(helmet());
 app.use(
@@ -18,22 +37,6 @@ app.use(
     windowMs: 15 * 60 * 1000,
     max: 100,
     message: "Too many requests, please try again later.",
-  })
-);
-
-// CORS
-const allowedOrigins = [
-  process.env.CLIENT_URL || "http://localhost:3000",
-  "http://localhost:3001",
-  "https://trippplel-client.onrender.com",
-];
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
-      callback(new Error("Not allowed by CORS"));
-    },
-    credentials: true,
   })
 );
 
