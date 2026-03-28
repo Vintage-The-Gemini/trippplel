@@ -3,13 +3,57 @@ const router = express.Router();
 const Product = require("../models/Product");
 const Order = require("../models/Order");
 const { protect, adminOnly } = require("../middleware/auth");
+const multer = require("multer");
+const cloudinary = require("cloudinary").v2;
+const { Readable } = require("stream");
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+});
 
 router.use(protect, adminOnly);
+
+// Image upload to Cloudinary
+router.post("/upload", upload.single("image"), async (req, res) => {
+  if (!req.file) return res.status(400).json({ message: "No file provided" });
+  try {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder: "trippplel/products",
+        transformation: [{ quality: "auto", fetch_format: "auto" }],
+      },
+      (error, result) => {
+        if (error) return res.status(500).json({ message: error.message });
+        res.json({ url: result.secure_url });
+      }
+    );
+    Readable.from(req.file.buffer).pipe(stream);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 
 // Products CRUD
 router.get("/products", async (req, res) => {
   const products = await Product.find().sort({ createdAt: -1 });
   res.json({ products });
+});
+
+router.get("/products/:id", async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: "Product not found" });
+    res.json({ product });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
 });
 
 router.post("/products", async (req, res) => {
@@ -23,7 +67,9 @@ router.post("/products", async (req, res) => {
 
 router.put("/products/:id", async (req, res) => {
   try {
-    const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
     res.json({ product });
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -41,7 +87,9 @@ router.delete("/products/:id", async (req, res) => {
 
 // Orders
 router.get("/orders", async (req, res) => {
-  const orders = await Order.find().sort({ createdAt: -1 }).populate("user", "name email");
+  const orders = await Order.find()
+    .sort({ createdAt: -1 })
+    .populate("user", "name email");
   res.json({ orders });
 });
 
