@@ -8,6 +8,7 @@ export default function AdminLogin() {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -57,14 +58,23 @@ export default function AdminLogin() {
             required
             className="w-full bg-zinc-900 border border-zinc-700 text-white px-4 py-3 text-sm focus:border-[#CCFF00] focus:outline-none placeholder-zinc-600"
           />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="w-full bg-zinc-900 border border-zinc-700 text-white px-4 py-3 text-sm focus:border-[#CCFF00] focus:outline-none placeholder-zinc-600"
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full bg-zinc-900 border border-zinc-700 text-white px-4 py-3 pr-12 text-sm focus:border-[#CCFF00] focus:outline-none placeholder-zinc-600"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors text-xs font-bold uppercase tracking-wider"
+            >
+              {showPassword ? "Hide" : "Show"}
+            </button>
+          </div>
           <button
             type="submit"
             disabled={loading}
