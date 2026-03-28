@@ -61,7 +61,6 @@ export default function AdminOrders() {
         <p className="text-zinc-600 text-sm">No orders yet.</p>
       ) : (
         <div className="border border-zinc-800">
-          {/* Header */}
           <div className="grid grid-cols-[90px_1fr_60px_100px_140px] gap-4 px-4 py-2 border-b border-zinc-800 text-[10px] text-zinc-500 uppercase tracking-widest">
             <span>Order ID</span>
             <span>Customer</span>
@@ -70,7 +69,6 @@ export default function AdminOrders() {
             <span>Status</span>
           </div>
 
-          {/* Rows */}
           {orders.map((order) => (
             <div
               key={order._id}
@@ -96,9 +94,7 @@ export default function AdminOrders() {
                 )}
               </div>
 
-              <span className="text-xs text-zinc-400">
-                {order.items.length}
-              </span>
+              <span className="text-xs text-zinc-400">{order.items.length}</span>
 
               <span className="text-xs font-black text-[#CCFF00]">
                 {formatKES(order.total)}

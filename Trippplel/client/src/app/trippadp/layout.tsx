@@ -14,13 +14,13 @@ export default function AdminLayout({
   const [adminName, setAdminName] = useState("");
 
   useEffect(() => {
-    if (pathname === "/admin/login") {
+    if (pathname === "/trippadp/login") {
       setChecking(false);
       return;
     }
     const token = localStorage.getItem("adminToken");
     if (!token) {
-      router.replace("/admin/login");
+      router.replace("/trippadp/login");
       return;
     }
     const stored = localStorage.getItem("adminUser");
@@ -35,28 +35,27 @@ export default function AdminLayout({
   const handleLogout = () => {
     localStorage.removeItem("adminToken");
     localStorage.removeItem("adminUser");
-    router.push("/admin/login");
+    router.push("/trippadp/login");
   };
 
-  if (pathname === "/admin/login") return <>{children}</>;
+  if (pathname === "/trippadp/login") return <>{children}</>;
   if (checking) return <div className="min-h-screen bg-zinc-950" />;
 
   const navItems = [
-    { href: "/admin", label: "Dashboard" },
-    { href: "/admin/products", label: "Products" },
-    { href: "/admin/orders", label: "Orders" },
+    { href: "/trippadp", label: "Dashboard" },
+    { href: "/trippadp/products", label: "Products" },
+    { href: "/trippadp/orders", label: "Orders" },
   ];
 
   return (
     <div className="flex min-h-screen bg-zinc-950 text-white">
-      {/* Sidebar */}
       <aside className="w-56 shrink-0 border-r border-zinc-800 flex flex-col">
         <div className="p-5 border-b border-zinc-800">
           <span
             className="text-2xl font-black tracking-tighter"
             style={{ fontFamily: "'Bebas Neue', sans-serif" }}
           >
-            TRIPPPLEL<span className="text-[#CCFF00]">.</span>
+            TRPP<span className="text-[#CCFF00]">.</span>
           </span>
           <p className="text-[10px] text-zinc-500 mt-0.5 uppercase tracking-widest">
             Admin Panel
@@ -66,8 +65,8 @@ export default function AdminLayout({
         <nav className="flex-1 p-3 space-y-0.5">
           {navItems.map((item) => {
             const isActive =
-              item.href === "/admin"
-                ? pathname === "/admin"
+              item.href === "/trippadp"
+                ? pathname === "/trippadp"
                 : pathname.startsWith(item.href);
             return (
               <Link
@@ -100,7 +99,6 @@ export default function AdminLayout({
         </div>
       </aside>
 
-      {/* Main content */}
       <main className="flex-1 overflow-auto">{children}</main>
     </div>
   );

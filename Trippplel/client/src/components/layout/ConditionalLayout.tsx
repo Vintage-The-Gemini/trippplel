@@ -10,7 +10,7 @@ export default function ConditionalLayout({
 }) {
   const pathname = usePathname();
 
-  if (pathname?.startsWith("/admin")) {
+  if (pathname?.startsWith("/trippadp")) {
     return <>{children}</>;
   }
 

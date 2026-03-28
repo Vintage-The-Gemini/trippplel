@@ -15,7 +15,7 @@ export default function NewProduct() {
     try {
       await createProduct(data);
       toast.success("Product created");
-      router.push("/admin/products");
+      router.push("/trippadp/products");
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data
@@ -30,7 +30,7 @@ export default function NewProduct() {
     <div className="p-8">
       <div className="flex items-center gap-4 mb-8">
         <Link
-          href="/admin/products"
+          href="/trippadp/products"
           className="text-zinc-500 hover:text-white text-xs uppercase tracking-widest font-bold transition-colors"
         >
           ← Back
@@ -42,7 +42,6 @@ export default function NewProduct() {
           New Product
         </h1>
       </div>
-
       <ProductForm onSubmit={handleSubmit} loading={loading} />
     </div>
   );

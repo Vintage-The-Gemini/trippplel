@@ -29,7 +29,7 @@ export default function EditProduct() {
     try {
       await updateProduct(id, data);
       toast.success("Product updated");
-      router.push("/admin/products");
+      router.push("/trippadp/products");
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data
@@ -53,7 +53,7 @@ export default function EditProduct() {
       <div className="p-8">
         <p className="text-red-400 text-sm">Product not found.</p>
         <Link
-          href="/admin/products"
+          href="/trippadp/products"
           className="text-[#CCFF00] text-xs uppercase tracking-wider font-bold mt-4 inline-block"
         >
           ← Back to Products
@@ -66,7 +66,7 @@ export default function EditProduct() {
     <div className="p-8">
       <div className="flex items-center gap-4 mb-8">
         <Link
-          href="/admin/products"
+          href="/trippadp/products"
           className="text-zinc-500 hover:text-white text-xs uppercase tracking-widest font-bold transition-colors"
         >
           ← Back
@@ -78,16 +78,10 @@ export default function EditProduct() {
           Edit Product
         </h1>
       </div>
-
       <p className="text-zinc-500 text-xs uppercase tracking-widest mb-6">
         {product.name}
       </p>
-
-      <ProductForm
-        initialData={product}
-        onSubmit={handleSubmit}
-        loading={loading}
-      />
+      <ProductForm initialData={product} onSubmit={handleSubmit} loading={loading} />
     </div>
   );
 }

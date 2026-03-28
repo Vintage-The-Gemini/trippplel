@@ -53,20 +53,13 @@ export default function AdminDashboard() {
         Dashboard
       </h1>
 
-      {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
         {[
-          {
-            label: "Total Revenue",
-            value: formatKES(stats?.revenue || 0),
-          },
+          { label: "Total Revenue", value: formatKES(stats?.revenue || 0) },
           { label: "Total Orders", value: stats?.totalOrders ?? 0 },
           { label: "Total Products", value: stats?.totalProducts ?? 0 },
         ].map((card) => (
-          <div
-            key={card.label}
-            className="bg-zinc-900 border border-zinc-800 p-6"
-          >
+          <div key={card.label} className="bg-zinc-900 border border-zinc-800 p-6">
             <p className="text-[10px] text-zinc-500 uppercase tracking-widest mb-2">
               {card.label}
             </p>
@@ -80,29 +73,27 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      {/* Quick Actions */}
       <div className="flex flex-wrap gap-3 mb-10">
         <Link
-          href="/admin/products/new"
+          href="/trippadp/products/new"
           className="bg-[#CCFF00] text-black text-xs font-black uppercase tracking-widest px-6 py-3 hover:bg-white transition-colors"
         >
           + Add Product
         </Link>
         <Link
-          href="/admin/products"
+          href="/trippadp/products"
           className="border border-zinc-700 text-zinc-300 text-xs font-black uppercase tracking-widest px-6 py-3 hover:border-[#CCFF00] hover:text-white transition-colors"
         >
           Manage Products
         </Link>
         <Link
-          href="/admin/orders"
+          href="/trippadp/orders"
           className="border border-zinc-700 text-zinc-300 text-xs font-black uppercase tracking-widest px-6 py-3 hover:border-[#CCFF00] hover:text-white transition-colors"
         >
           View Orders
         </Link>
       </div>
 
-      {/* Recent Orders */}
       <div>
         <h2 className="text-[10px] text-zinc-500 uppercase tracking-widest mb-4">
           Recent Orders
@@ -112,10 +103,7 @@ export default function AdminDashboard() {
         ) : (
           <div className="border border-zinc-800 divide-y divide-zinc-800">
             {stats.recentOrders.map((order) => (
-              <div
-                key={order._id}
-                className="flex items-center justify-between px-4 py-3"
-              >
+              <div key={order._id} className="flex items-center justify-between px-4 py-3">
                 <div>
                   <p className="text-xs font-bold text-white uppercase tracking-wide">
                     {order.email}
@@ -128,11 +116,7 @@ export default function AdminDashboard() {
                   <p className="text-xs font-black text-[#CCFF00]">
                     {formatKES(order.total)}
                   </p>
-                  <p
-                    className={`text-[10px] uppercase tracking-wider mt-0.5 ${
-                      STATUS_COLORS[order.status] || "text-zinc-400"
-                    }`}
-                  >
+                  <p className={`text-[10px] uppercase tracking-wider mt-0.5 ${STATUS_COLORS[order.status] || "text-zinc-400"}`}>
                     {order.status}
                   </p>
                 </div>

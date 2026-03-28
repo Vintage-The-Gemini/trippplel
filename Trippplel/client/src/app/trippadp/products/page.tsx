@@ -50,7 +50,7 @@ export default function AdminProducts() {
           Products ({products.length})
         </h1>
         <Link
-          href="/admin/products/new"
+          href="/trippadp/products/new"
           className="bg-[#CCFF00] text-black text-xs font-black uppercase tracking-widest px-5 py-2.5 hover:bg-white transition-colors"
         >
           + Add Product
@@ -61,7 +61,6 @@ export default function AdminProducts() {
         <p className="text-zinc-600 text-sm">No products yet.</p>
       ) : (
         <div className="border border-zinc-800">
-          {/* Table header */}
           <div className="grid grid-cols-[60px_1fr_100px_80px_80px_80px_120px] gap-4 px-4 py-2 border-b border-zinc-800 text-[10px] text-zinc-500 uppercase tracking-widest">
             <span>Image</span>
             <span>Name</span>
@@ -72,13 +71,11 @@ export default function AdminProducts() {
             <span>Actions</span>
           </div>
 
-          {/* Rows */}
           {products.map((product) => (
             <div
               key={product._id}
               className="grid grid-cols-[60px_1fr_100px_80px_80px_80px_120px] gap-4 px-4 py-3 border-b border-zinc-800 items-center hover:bg-zinc-900 transition-colors"
             >
-              {/* Image */}
               <div className="w-12 h-12 bg-zinc-800 overflow-hidden">
                 {product.images?.[0] ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -94,7 +91,6 @@ export default function AdminProducts() {
                 )}
               </div>
 
-              {/* Name */}
               <div>
                 <p className="text-sm font-bold text-white leading-tight">
                   {product.name}
@@ -104,17 +100,14 @@ export default function AdminProducts() {
                 </p>
               </div>
 
-              {/* Category */}
               <span className="text-xs text-zinc-400 uppercase tracking-wider">
                 {product.category === "tshirt" ? "T-Shirt" : "Hoodie"}
               </span>
 
-              {/* Price */}
               <span className="text-xs font-bold text-[#CCFF00]">
                 {formatKES(product.price)}
               </span>
 
-              {/* Stock */}
               <span
                 className={`text-xs font-bold ${
                   product.stock === 0
@@ -127,7 +120,6 @@ export default function AdminProducts() {
                 {product.stock}
               </span>
 
-              {/* Flags */}
               <div className="flex flex-col gap-0.5">
                 {product.isFeatured && (
                   <span className="text-[9px] font-bold uppercase tracking-wider text-[#CCFF00]">
@@ -141,10 +133,9 @@ export default function AdminProducts() {
                 )}
               </div>
 
-              {/* Actions */}
               <div className="flex gap-2">
                 <Link
-                  href={`/admin/products/${product._id}/edit`}
+                  href={`/trippadp/products/${product._id}/edit`}
                   className="text-xs font-bold uppercase tracking-wider text-zinc-400 hover:text-white border border-zinc-700 hover:border-zinc-400 px-2.5 py-1 transition-colors"
                 >
                   Edit
