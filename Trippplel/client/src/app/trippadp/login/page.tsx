@@ -6,7 +6,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-const STAFF_ROLES = ["viewer", "orders_manager", "admin", "super_admin"];
+const STAFF_ROLES = ["staff", "super_admin"];
 
 export default function AdminLogin() {
   const router = useRouter();
