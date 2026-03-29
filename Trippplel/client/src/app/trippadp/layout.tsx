@@ -3,14 +3,13 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 
-type Role = "super_admin" | "admin" | "orders_manager" | "viewer" | "";
-
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [checking, setChecking] = useState(true);
   const [adminName, setAdminName] = useState("");
-  const [role, setRole] = useState<Role>("");
+  const [role, setRole] = useState("");
+  const [permissions, setPermissions] = useState<string[]>([]);
 
   useEffect(() => {
     if (pathname === "/trippadp/login") {
@@ -28,6 +27,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         const user = JSON.parse(stored);
         setAdminName(user.name);
         setRole(user.role);
+        setPermissions(user.permissions || []);
       } catch {}
     }
     setChecking(false);
@@ -42,43 +42,34 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (pathname === "/trippadp/login") return <>{children}</>;
   if (checking) return <div className="min-h-screen bg-zinc-950" />;
 
-  const canManageProducts = ["admin", "super_admin"].includes(role);
-  const canViewFinances = ["admin", "super_admin"].includes(role);
-  const canManageUsers = role === "super_admin";
-
-  const ROLE_LABELS: Record<string, string> = {
-    super_admin: "Super Admin",
-    admin: "Admin",
-    orders_manager: "Orders Manager",
-    viewer: "Viewer",
-  };
+  const isSuperAdmin = role === "super_admin";
+  const can = (perm: string) => isSuperAdmin || permissions.includes(perm);
 
   const navSections = [
     {
       label: "Overview",
       items: [
-        { href: "/trippadp", label: "Dashboard", show: true },
-        { href: "/trippadp/finances", label: "Finances", show: canViewFinances },
+        { href: "/trippadp", label: "Dashboard", show: can("dashboard") },
+        { href: "/trippadp/finances", label: "Finances", show: can("finances") },
       ],
     },
     {
       label: "Store",
       items: [
-        { href: "/trippadp/products", label: "Products", show: canManageProducts },
-        { href: "/trippadp/orders", label: "Orders", show: true },
+        { href: "/trippadp/products", label: "Products", show: can("products") },
+        { href: "/trippadp/orders", label: "Orders", show: can("orders") },
       ],
     },
     {
       label: "Admin",
       items: [
-        { href: "/trippadp/users", label: "Users & Roles", show: canManageUsers },
+        { href: "/trippadp/users", label: "Users & Roles", show: isSuperAdmin },
       ],
     },
   ];
 
   return (
     <div className="flex min-h-screen bg-zinc-950 text-white">
-      {/* Sidebar */}
       <aside className="w-56 shrink-0 border-r border-zinc-800 flex flex-col">
         <div className="p-5 border-b border-zinc-800">
           <span
@@ -94,15 +85,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         <nav className="flex-1 p-3 overflow-y-auto">
           {navSections.map((section) => {
-            const visibleItems = section.items.filter((i) => i.show);
-            if (visibleItems.length === 0) return null;
+            const visible = section.items.filter((i) => i.show);
+            if (!visible.length) return null;
             return (
               <div key={section.label} className="mb-4">
                 <p className="text-[9px] text-zinc-600 uppercase tracking-widest font-bold px-3 mb-1">
                   {section.label}
                 </p>
                 <div className="space-y-0.5">
-                  {visibleItems.map((item) => {
+                  {visible.map((item) => {
                     const isActive =
                       item.href === "/trippadp"
                         ? pathname === "/trippadp"
@@ -133,11 +124,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               {adminName}
             </p>
           )}
-          {role && (
-            <span className="inline-block mt-1 mb-2 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 bg-zinc-800 text-[#CCFF00]">
-              {ROLE_LABELS[role] || role}
-            </span>
-          )}
+          <span className="inline-block mt-1 mb-2 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 bg-zinc-800 text-[#CCFF00]">
+            {isSuperAdmin ? "Super Admin" : "Staff"}
+          </span>
           <button
             onClick={handleLogout}
             className="w-full text-xs font-black uppercase tracking-widest text-red-400 hover:text-red-300 py-1.5 text-left transition-colors"

@@ -35,8 +35,8 @@ export const uploadImage = (file: File) => {
 
 // User management (super_admin only)
 export const getAdminUsers = () => adminAxios().get("/admin/users");
-export const createAdminUser = (data: { name: string; username: string; password: string; role: string }) =>
+export const createAdminUser = (data: { name: string; username: string; password: string; permissions: string[] }) =>
   adminAxios().post("/admin/users", data);
-export const updateUserRole = (id: string, role: string) =>
-  adminAxios().put(`/admin/users/${id}/role`, { role });
+export const updateUserPermissions = (id: string, permissions: string[]) =>
+  adminAxios().put(`/admin/users/${id}/permissions`, { permissions });
 export const revokeUserAccess = (id: string) => adminAxios().delete(`/admin/users/${id}`);

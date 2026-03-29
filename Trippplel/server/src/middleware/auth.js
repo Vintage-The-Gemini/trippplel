@@ -13,24 +13,22 @@ exports.protect = async (req, res, next) => {
   }
 };
 
-// Any staff role (viewer, orders_manager, admin, super_admin)
+// Any staff member (staff or super_admin)
 exports.adminOnly = (req, res, next) => {
-  const staffRoles = ["viewer", "orders_manager", "admin", "super_admin"];
-  if (!staffRoles.includes(req.user?.role)) {
+  if (!["staff", "super_admin"].includes(req.user?.role)) {
     return res.status(403).json({ message: "Staff access required" });
   }
   next();
 };
 
-// admin or super_admin — can manage products, finances
-exports.managerOnly = (req, res, next) => {
-  if (!["admin", "super_admin"].includes(req.user?.role)) {
-    return res.status(403).json({ message: "Admin access required" });
-  }
-  next();
+// Require a specific permission — super_admin always passes
+exports.requirePermission = (permission) => (req, res, next) => {
+  if (req.user?.role === "super_admin") return next();
+  if (req.user?.permissions?.includes(permission)) return next();
+  return res.status(403).json({ message: `Requires '${permission}' permission` });
 };
 
-// super_admin only — can manage users and roles
+// super_admin only
 exports.superAdminOnly = (req, res, next) => {
   if (req.user?.role !== "super_admin") {
     return res.status(403).json({ message: "Super admin access required" });

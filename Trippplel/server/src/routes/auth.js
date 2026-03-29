@@ -16,7 +16,13 @@ const sendToken = (user, res) => {
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
   res.json({
-    user: { _id: user._id, name: user.name, email: user.email, role: user.role },
+    user: {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      permissions: user.permissions || [],
+    },
     token,
   });
 };
