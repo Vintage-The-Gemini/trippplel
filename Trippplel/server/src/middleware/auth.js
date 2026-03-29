@@ -13,9 +13,27 @@ exports.protect = async (req, res, next) => {
   }
 };
 
+// Any staff role (viewer, orders_manager, admin, super_admin)
 exports.adminOnly = (req, res, next) => {
-  if (req.user?.role !== "admin") {
+  const staffRoles = ["viewer", "orders_manager", "admin", "super_admin"];
+  if (!staffRoles.includes(req.user?.role)) {
+    return res.status(403).json({ message: "Staff access required" });
+  }
+  next();
+};
+
+// admin or super_admin — can manage products, finances
+exports.managerOnly = (req, res, next) => {
+  if (!["admin", "super_admin"].includes(req.user?.role)) {
     return res.status(403).json({ message: "Admin access required" });
+  }
+  next();
+};
+
+// super_admin only — can manage users and roles
+exports.superAdminOnly = (req, res, next) => {
+  if (req.user?.role !== "super_admin") {
+    return res.status(403).json({ message: "Super admin access required" });
   }
   next();
 };
