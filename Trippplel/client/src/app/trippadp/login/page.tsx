@@ -1,8 +1,12 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { adminLogin } from "@/lib/adminApi";
+import axios from "axios";
 import toast from "react-hot-toast";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const STAFF_ROLES = ["viewer", "orders_manager", "admin", "super_admin"];
 
 export default function AdminLogin() {
   const router = useRouter();
@@ -10,6 +14,15 @@ export default function AdminLogin() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [waking, setWaking] = useState(true);
+
+  // Ping server on mount so it's awake before user hits submit
+  useEffect(() => {
+    axios
+      .get(`${API_URL}/health`)
+      .catch(() => {})
+      .finally(() => setWaking(false));
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,7 +30,7 @@ export default function AdminLogin() {
     try {
       const res = await adminLogin(username, password);
       const { user, token } = res.data;
-      if (user.role !== "admin") {
+      if (!STAFF_ROLES.includes(user.role)) {
         toast.error("Access denied");
         return;
       }
@@ -47,6 +60,11 @@ export default function AdminLogin() {
           <p className="text-zinc-500 text-xs uppercase tracking-widest mt-2">
             Admin Access
           </p>
+          {waking && (
+            <p className="text-zinc-600 text-[10px] uppercase tracking-widest mt-3 animate-pulse">
+              Connecting...
+            </p>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3">
@@ -77,10 +95,10 @@ export default function AdminLogin() {
           </div>
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || waking}
             className="w-full bg-[#CCFF00] text-black font-black text-sm uppercase tracking-widest py-3 hover:bg-white transition-colors disabled:opacity-50 mt-2"
           >
-            {loading ? "..." : "Enter"}
+            {waking ? "Waking server..." : loading ? "..." : "Enter"}
           </button>
         </form>
       </div>
