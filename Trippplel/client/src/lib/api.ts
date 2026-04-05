@@ -26,8 +26,11 @@ export const getOrder = (id: string) => api.get(`/orders/${id}`);
 export const getUserOrders = () => api.get("/orders/my-orders");
 
 // Payments
-export const createPaymentIntent = (amount: number) =>
-  api.post("/payments/create-intent", { amount });
+export const initiatePayment = (orderId: string) =>
+  api.post("/payments/initiate", { orderId });
+
+export const getPaymentStatus = (orderId: string) =>
+  api.get(`/payments/status/${orderId}`);
 
 // Auth
 export const loginUser = (data: { email: string; password: string }) =>

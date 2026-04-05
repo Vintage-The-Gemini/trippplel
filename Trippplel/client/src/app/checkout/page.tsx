@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useCartStore } from "@/store/cartStore";
-import { createOrder, createPaymentIntent } from "@/lib/api";
+import { createOrder, initiatePayment } from "@/lib/api";
 import { formatKES, FREE_SHIPPING_THRESHOLD, SHIPPING_COST } from "@/lib/currency";
 import { ShippingAddress } from "@/types";
 import { useRouter } from "next/navigation";
@@ -35,10 +35,17 @@ export default function CheckoutPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await createPaymentIntent(Math.round(orderTotal * 100));
-      const res = await createOrder({ email, items, shippingAddress: form, total: orderTotal });
+      // 1. Create order in DB (status: pending)
+      const orderRes = await createOrder({ email, items, shippingAddress: form, total: orderTotal });
+      const orderId = orderRes.data.order._id;
+
+      // 2. Initiate Pesapal payment — get hosted checkout URL
+      const paymentRes = await initiatePayment(orderId);
+      const { redirectUrl } = paymentRes.data;
+
+      // 3. Clear cart then send customer to Pesapal to pay
       clearCart();
-      router.push(`/orders/${res.data.order._id}`);
+      window.location.href = redirectUrl;
     } catch {
       toast.error("Something went wrong. Please try again.");
     } finally {

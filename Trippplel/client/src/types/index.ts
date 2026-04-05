@@ -34,7 +34,7 @@ export interface Order {
   shippingAddress: ShippingAddress;
   total: number;
   status: "pending" | "paid" | "shipped" | "delivered" | "cancelled";
-  stripePaymentId?: string;
+  pesapalTrackingId?: string;
   createdAt: string;
 }
 

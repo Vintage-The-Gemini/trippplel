@@ -29,7 +29,7 @@ const orderSchema = new mongoose.Schema(
       enum: ["pending", "paid", "shipped", "delivered", "cancelled"],
       default: "pending",
     },
-    stripePaymentId: String,
+    pesapalTrackingId: String,
     isPaid: { type: Boolean, default: false },
     paidAt: Date,
   },
