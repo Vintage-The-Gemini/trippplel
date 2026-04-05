@@ -6,6 +6,14 @@ const cookieParser = require("cookie-parser");
 const rateLimit = require("express-rate-limit");
 const connectDB = require("./config/db");
 
+// Validate required environment variables before starting
+const requiredEnvVars = ["MONGODB_URI", "JWT_SECRET"];
+const missingVars = requiredEnvVars.filter((v) => !process.env[v]);
+if (missingVars.length > 0) {
+  console.error(`Missing required environment variables: ${missingVars.join(", ")}`);
+  process.exit(1);
+}
+
 const app = express();
 
 // Connect DB
@@ -37,7 +45,7 @@ app.use(
     windowMs: 15 * 60 * 1000,
     max: 100,
     message: "Too many requests, please try again later.",
-  })
+  }),
 );
 
 // Body parsers
