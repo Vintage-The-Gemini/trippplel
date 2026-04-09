@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  user
+  staff
+  super_admin
+}
+
+enum Category {
+  tshirt
+  hoodie
+}
+
+enum OrderStatus {
+  pending
+  paid
+  shipped
+  delivered
+  cancelled
+}
+
+model User {
+  id          String      @id @default(uuid())
+  name        String
+  email       String      @unique
+  password    String
+  role        Role        @default(user)
+  permissions String[]    @default([])
+  orders      Order[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Product {
+  id          String    @id @default(uuid())
+  name        String
+  slug        String    @unique
+  description String
+  price       Float
+  images      String[]
+  category    Category
+  sizes       String[]
+  colors      Json      // [{name, hex}]
+  stock       Int       @default(0)
+  isNew       Boolean   @default(false)
+  isFeatured  Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Order {
+  id                String      @id @default(uuid())
+  userId            String?
+  user              User?       @relation(fields: [userId], references: [id])
+  email             String
+  items             Json        // [{productId, name, image, price, quantity, size, color}]
+  shippingAddress   Json        // {fullName, address, city, postalCode, country, phone}
+  total             Float
+  status            OrderStatus @default(pending)
+  pesapalTrackingId String?
+  isPaid            Boolean     @default(false)
+  paidAt            DateTime?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+}

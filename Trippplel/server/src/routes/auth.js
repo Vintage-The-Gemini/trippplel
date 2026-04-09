@@ -1,14 +1,15 @@
 const express = require("express");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
-const User = require("../models/User");
+const bcrypt = require("bcryptjs");
+const prisma = require("../lib/prisma");
 const { protect } = require("../middleware/auth");
 
 const signToken = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
 const sendToken = (user, res) => {
-  const token = signToken(user._id);
+  const token = signToken(user.id);
   res.cookie("token", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -17,7 +18,7 @@ const sendToken = (user, res) => {
   });
   res.json({
     user: {
-      _id: user._id,
+      _id: user.id,
       name: user.name,
       email: user.email,
       role: user.role,
@@ -31,9 +32,10 @@ const sendToken = (user, res) => {
 router.post("/register", async (req, res) => {
   try {
     const { name, email, password } = req.body;
-    const existing = await User.findOne({ email });
+    const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) return res.status(400).json({ message: "Email already in use" });
-    const user = await User.create({ name, email, password });
+    const hashed = await bcrypt.hash(password, 12);
+    const user = await prisma.user.create({ data: { name, email, password: hashed } });
     sendToken(user, res);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -44,10 +46,10 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email }).select("+password");
-    if (!user || !(await user.matchPassword(password))) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) return res.status(401).json({ message: "Invalid credentials" });
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) return res.status(401).json({ message: "Invalid credentials" });
     sendToken(user, res);
   } catch (err) {
     res.status(500).json({ message: err.message });

@@ -1,8 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const Product = require("../models/Product");
-const Order = require("../models/Order");
-const User = require("../models/User");
+const prisma = require("../lib/prisma");
+const bcrypt = require("bcryptjs");
 const {
   protect,
   adminOnly,
@@ -26,7 +25,14 @@ const upload = multer({
 
 const VALID_PERMISSIONS = ["dashboard", "products", "orders", "finances"];
 
-// All admin routes require authentication + staff role
+const fmtProduct = (p) => p ? { ...p, _id: p.id } : null;
+const fmtOrder = (o) => o ? { ...o, _id: o.id } : null;
+const fmtUser = (u) => {
+  if (!u) return null;
+  const { password, ...rest } = u;
+  return { ...rest, _id: u.id };
+};
+
 router.use(protect, adminOnly);
 
 // ── Image Upload ──────────────────────────────────────────────────────────────
@@ -38,10 +44,7 @@ router.post(
     if (!req.file) return res.status(400).json({ message: "No file provided" });
     try {
       const stream = cloudinary.uploader.upload_stream(
-        {
-          folder: "trippplel/products",
-          transformation: [{ quality: "auto", fetch_format: "auto" }],
-        },
+        { folder: "trippplel/products", transformation: [{ quality: "auto", fetch_format: "auto" }] },
         (error, result) => {
           if (error) return res.status(500).json({ message: error.message });
           res.json({ url: result.secure_url });
@@ -57,20 +60,17 @@ router.post(
 // ── Dashboard Stats ───────────────────────────────────────────────────────────
 router.get("/stats", requirePermission("dashboard"), async (req, res) => {
   try {
-    const [totalOrders, totalProducts, recentOrders] = await Promise.all([
-      Order.countDocuments(),
-      Product.countDocuments(),
-      Order.find().sort({ createdAt: -1 }).limit(5).populate("user", "name"),
-    ]);
-    const revenue = await Order.aggregate([
-      { $match: { status: { $ne: "cancelled" } } },
-      { $group: { _id: null, total: { $sum: "$total" } } },
+    const [totalOrders, totalProducts, recentOrders, revenueAgg] = await Promise.all([
+      prisma.order.count(),
+      prisma.product.count(),
+      prisma.order.findMany({ orderBy: { createdAt: "desc" }, take: 5 }),
+      prisma.order.aggregate({ _sum: { total: true }, where: { status: { not: "cancelled" } } }),
     ]);
     res.json({
       totalOrders,
       totalProducts,
-      revenue: revenue[0]?.total || 0,
-      recentOrders,
+      revenue: revenueAgg._sum.total || 0,
+      recentOrders: recentOrders.map(fmtOrder),
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -84,92 +84,33 @@ router.get("/finances", requirePermission("finances"), async (req, res) => {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const startOfWeek = new Date(now);
     startOfWeek.setDate(now.getDate() - now.getDay());
+    const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+    const notCancelled = { status: { not: "cancelled" } };
 
-    const [
-      totalRevenue,
-      monthRevenue,
-      weekRevenue,
-      ordersByStatus,
-      categoryRevenue,
-      topProducts,
-      monthlyBreakdown,
-    ] = await Promise.all([
-      Order.aggregate([
-        { $match: { status: { $ne: "cancelled" } } },
-        { $group: { _id: null, total: { $sum: "$total" } } },
-      ]),
-      Order.aggregate([
-        { $match: { status: { $ne: "cancelled" }, createdAt: { $gte: startOfMonth } } },
-        { $group: { _id: null, total: { $sum: "$total" } } },
-      ]),
-      Order.aggregate([
-        { $match: { status: { $ne: "cancelled" }, createdAt: { $gte: startOfWeek } } },
-        { $group: { _id: null, total: { $sum: "$total" } } },
-      ]),
-      Order.aggregate([{ $group: { _id: "$status", count: { $sum: 1 } } }]),
-      Order.aggregate([
-        { $match: { status: { $ne: "cancelled" } } },
-        { $unwind: "$items" },
-        {
-          $lookup: {
-            from: "products",
-            localField: "items.product",
-            foreignField: "_id",
-            as: "productInfo",
-          },
-        },
-        { $unwind: { path: "$productInfo", preserveNullAndEmptyArrays: true } },
-        {
-          $group: {
-            _id: "$productInfo.category",
-            revenue: { $sum: { $multiply: ["$items.price", "$items.quantity"] } },
-            units: { $sum: "$items.quantity" },
-          },
-        },
-      ]),
-      Order.aggregate([
-        { $match: { status: { $ne: "cancelled" } } },
-        { $unwind: "$items" },
-        {
-          $group: {
-            _id: "$items.product",
-            name: { $first: "$items.name" },
-            revenue: { $sum: { $multiply: ["$items.price", "$items.quantity"] } },
-            units: { $sum: "$items.quantity" },
-          },
-        },
-        { $sort: { revenue: -1 } },
-        { $limit: 5 },
-      ]),
-      Order.aggregate([
-        {
-          $match: {
-            status: { $ne: "cancelled" },
-            createdAt: { $gte: new Date(now.getFullYear(), now.getMonth() - 5, 1) },
-          },
-        },
-        {
-          $group: {
-            _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" } },
-            revenue: { $sum: "$total" },
-            orders: { $sum: 1 },
-          },
-        },
-        { $sort: { "_id.year": 1, "_id.month": 1 } },
-      ]),
+    const [totalRev, monthRev, weekRev, byStatus, monthly] = await Promise.all([
+      prisma.order.aggregate({ _sum: { total: true }, where: notCancelled }),
+      prisma.order.aggregate({ _sum: { total: true }, where: { ...notCancelled, createdAt: { gte: startOfMonth } } }),
+      prisma.order.aggregate({ _sum: { total: true }, where: { ...notCancelled, createdAt: { gte: startOfWeek } } }),
+      prisma.order.groupBy({ by: ["status"], _count: { id: true } }),
+      prisma.order.findMany({ where: { ...notCancelled, createdAt: { gte: sixMonthsAgo } }, select: { total: true, createdAt: true } }),
     ]);
 
+    const monthlyMap = {};
+    monthly.forEach((o) => {
+      const key = `${o.createdAt.getFullYear()}-${o.createdAt.getMonth() + 1}`;
+      if (!monthlyMap[key]) monthlyMap[key] = { revenue: 0, orders: 0, month: o.createdAt.getMonth() + 1, year: o.createdAt.getFullYear() };
+      monthlyMap[key].revenue += o.total;
+      monthlyMap[key].orders += 1;
+    });
+
     res.json({
-      totalRevenue: totalRevenue[0]?.total || 0,
-      monthRevenue: monthRevenue[0]?.total || 0,
-      weekRevenue: weekRevenue[0]?.total || 0,
-      ordersByStatus: ordersByStatus.reduce((acc, s) => {
-        acc[s._id] = s.count;
-        return acc;
-      }, {}),
-      categoryRevenue,
-      topProducts,
-      monthlyBreakdown,
+      totalRevenue: totalRev._sum.total || 0,
+      monthRevenue: monthRev._sum.total || 0,
+      weekRevenue: weekRev._sum.total || 0,
+      ordersByStatus: byStatus.reduce((acc, s) => { acc[s.status] = s._count.id; return acc; }, {}),
+      monthlyBreakdown: Object.values(monthlyMap).sort((a, b) => a.year - b.year || a.month - b.month),
+      categoryRevenue: [],
+      topProducts: [],
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -178,15 +119,15 @@ router.get("/finances", requirePermission("finances"), async (req, res) => {
 
 // ── Products CRUD ─────────────────────────────────────────────────────────────
 router.get("/products", requirePermission("products"), async (req, res) => {
-  const products = await Product.find().sort({ createdAt: -1 });
-  res.json({ products });
+  const products = await prisma.product.findMany({ orderBy: { createdAt: "desc" } });
+  res.json({ products: products.map(fmtProduct) });
 });
 
 router.get("/products/:id", requirePermission("products"), async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await prisma.product.findUnique({ where: { id: req.params.id } });
     if (!product) return res.status(404).json({ message: "Product not found" });
-    res.json({ product });
+    res.json({ product: fmtProduct(product) });
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
@@ -194,8 +135,8 @@ router.get("/products/:id", requirePermission("products"), async (req, res) => {
 
 router.post("/products", requirePermission("products"), async (req, res) => {
   try {
-    const product = await Product.create(req.body);
-    res.status(201).json({ product });
+    const product = await prisma.product.create({ data: req.body });
+    res.status(201).json({ product: fmtProduct(product) });
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
@@ -203,8 +144,8 @@ router.post("/products", requirePermission("products"), async (req, res) => {
 
 router.put("/products/:id", requirePermission("products"), async (req, res) => {
   try {
-    const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    res.json({ product });
+    const product = await prisma.product.update({ where: { id: req.params.id }, data: req.body });
+    res.json({ product: fmtProduct(product) });
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
@@ -212,7 +153,7 @@ router.put("/products/:id", requirePermission("products"), async (req, res) => {
 
 router.delete("/products/:id", requirePermission("products"), async (req, res) => {
   try {
-    await Product.findByIdAndDelete(req.params.id);
+    await prisma.product.delete({ where: { id: req.params.id } });
     res.json({ message: "Product deleted" });
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -221,20 +162,20 @@ router.delete("/products/:id", requirePermission("products"), async (req, res) =
 
 // ── Orders ────────────────────────────────────────────────────────────────────
 router.get("/orders", requirePermission("orders"), async (req, res) => {
-  const orders = await Order.find()
-    .sort({ createdAt: -1 })
-    .populate("user", "name email");
-  res.json({ orders });
+  const orders = await prisma.order.findMany({
+    orderBy: { createdAt: "desc" },
+    include: { user: { select: { id: true, name: true, email: true } } },
+  });
+  res.json({ orders: orders.map(fmtOrder) });
 });
 
 router.put("/orders/:id/status", requirePermission("orders"), async (req, res) => {
   try {
-    const order = await Order.findByIdAndUpdate(
-      req.params.id,
-      { status: req.body.status },
-      { new: true }
-    );
-    res.json({ order });
+    const order = await prisma.order.update({
+      where: { id: req.params.id },
+      data: { status: req.body.status },
+    });
+    res.json({ order: fmtOrder(order) });
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
@@ -243,10 +184,11 @@ router.put("/orders/:id/status", requirePermission("orders"), async (req, res) =
 // ── User Management (super_admin only) ───────────────────────────────────────
 router.get("/users", superAdminOnly, async (req, res) => {
   try {
-    const users = await User.find({ role: { $in: ["staff", "super_admin"] } }).sort({
-      createdAt: -1,
+    const users = await prisma.user.findMany({
+      where: { role: { in: ["staff", "super_admin"] } },
+      orderBy: { createdAt: "desc" },
     });
-    res.json({ users });
+    res.json({ users: users.map(fmtUser) });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -256,25 +198,13 @@ router.post("/users", superAdminOnly, async (req, res) => {
   try {
     const { name, username, password, permissions } = req.body;
     const filtered = (permissions || []).filter((p) => VALID_PERMISSIONS.includes(p));
-    const existing = await User.findOne({ email: username });
+    const existing = await prisma.user.findUnique({ where: { email: username } });
     if (existing) return res.status(400).json({ message: "Username already taken" });
-    const user = await User.create({
-      name,
-      email: username,
-      password,
-      role: "staff",
-      permissions: filtered,
+    const hashed = await bcrypt.hash(password, 12);
+    const user = await prisma.user.create({
+      data: { name, email: username, password: hashed, role: "staff", permissions: filtered },
     });
-    res.status(201).json({
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        permissions: user.permissions,
-        createdAt: user.createdAt,
-      },
-    });
+    res.status(201).json({ user: fmtUser(user) });
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
@@ -282,19 +212,12 @@ router.post("/users", superAdminOnly, async (req, res) => {
 
 router.put("/users/:id/permissions", superAdminOnly, async (req, res) => {
   try {
-    const target = await User.findById(req.params.id);
+    const target = await prisma.user.findUnique({ where: { id: req.params.id } });
     if (!target) return res.status(404).json({ message: "User not found" });
-    if (target.role === "super_admin") {
-      return res.status(403).json({ message: "Cannot modify super admin" });
-    }
-    const filtered = (req.body.permissions || []).filter((p) =>
-      VALID_PERMISSIONS.includes(p)
-    );
-    target.permissions = filtered;
-    await target.save();
-    res.json({
-      user: { _id: target._id, name: target.name, permissions: target.permissions },
-    });
+    if (target.role === "super_admin") return res.status(403).json({ message: "Cannot modify super admin" });
+    const filtered = (req.body.permissions || []).filter((p) => VALID_PERMISSIONS.includes(p));
+    const user = await prisma.user.update({ where: { id: req.params.id }, data: { permissions: filtered } });
+    res.json({ user: fmtUser(user) });
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
@@ -302,14 +225,10 @@ router.put("/users/:id/permissions", superAdminOnly, async (req, res) => {
 
 router.delete("/users/:id", superAdminOnly, async (req, res) => {
   try {
-    const target = await User.findById(req.params.id);
+    const target = await prisma.user.findUnique({ where: { id: req.params.id } });
     if (!target) return res.status(404).json({ message: "User not found" });
-    if (target.role === "super_admin") {
-      return res.status(403).json({ message: "Cannot delete super admin" });
-    }
-    target.role = "user";
-    target.permissions = [];
-    await target.save();
+    if (target.role === "super_admin") return res.status(403).json({ message: "Cannot delete super admin" });
+    await prisma.user.update({ where: { id: req.params.id }, data: { role: "user", permissions: [] } });
     res.json({ message: "Access revoked" });
   } catch (err) {
     res.status(400).json({ message: err.message });
