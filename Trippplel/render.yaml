@@ -4,20 +4,24 @@ services:
     name: trippplel-server
     runtime: node
     rootDir: server
-    buildCommand: npm install
-    startCommand: npm start
+    buildCommand: npm install && npx prisma generate
+    startCommand: node src/server.js
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 5000
-      - key: MONGODB_URI
-        sync: false   # set manually in Render dashboard
+      - key: DATABASE_URL
+        sync: false
       - key: JWT_SECRET
         sync: false
       - key: CLIENT_URL
-        sync: false   # your Vercel frontend URL
-      - key: STRIPE_SECRET_KEY
+        value: https://trippplel-client.onrender.com
+      - key: SERVER_URL
+        value: https://trippplel-server.onrender.com
+      - key: PESAPAL_CONSUMER_KEY
+        sync: false
+      - key: PESAPAL_CONSUMER_SECRET
         sync: false
       - key: CLOUDINARY_CLOUD_NAME
         sync: false
@@ -26,3 +30,20 @@ services:
       - key: CLOUDINARY_API_SECRET
         sync: false
     healthCheckPath: /api/health
+
+  # ── Next.js Frontend ─────────────────────────────────────
+  - type: web
+    name: trippplel-client
+    runtime: node
+    rootDir: client
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        value: https://trippplel-server.onrender.com/api
+      - key: NEXTAUTH_URL
+        value: https://trippplel-client.onrender.com
+      - key: NEXTAUTH_SECRET
+        sync: false
