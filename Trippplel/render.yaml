@@ -11,14 +11,14 @@ services:
         value: production
       - key: PORT
         value: 5000
-      - key: DATABASE_URL
-        sync: false
-      - key: JWT_SECRET
-        sync: false
       - key: CLIENT_URL
         value: https://trippplel-client.onrender.com
       - key: SERVER_URL
         value: https://trippplel-server.onrender.com
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
       - key: PESAPAL_CONSUMER_KEY
         sync: false
       - key: PESAPAL_CONSUMER_SECRET
