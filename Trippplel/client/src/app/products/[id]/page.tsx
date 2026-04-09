@@ -1,5 +1,15 @@
 "use client";
 
+export async function generateStaticParams() {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`);
+    const data = await res.json();
+    return (data.products || []).map((p: { _id: string }) => ({ id: p._id }));
+  } catch {
+    return [];
+  }
+}
+
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useParams } from "next/navigation";

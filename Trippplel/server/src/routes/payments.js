@@ -58,7 +58,7 @@ router.post("/initiate", async (req, res) => {
         currency: "KES",
         amount: order.total,
         description: `Order ${orderId.slice(-8).toUpperCase()}`,
-        callback_url: `${process.env.CLIENT_URL}/orders/${orderId}`,
+        callback_url: `${process.env.CLIENT_URL}/order-confirmation?id=${orderId}`,
         notification_id: ipnId,
         billing_address: {
           email_address: order.email,

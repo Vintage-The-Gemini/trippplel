@@ -1,4 +1,7 @@
 "use client";
+
+export function generateStaticParams() { return []; }
+
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { getAdminProduct, updateProduct } from "@/lib/adminApi";

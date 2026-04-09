@@ -1,55 +1,47 @@
 "use client";
 
-export function generateStaticParams() { return []; }
-
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { getOrder, getPaymentStatus } from "@/lib/api";
 import { Order } from "@/types";
 import { formatKES } from "@/lib/currency";
 import Link from "next/link";
-import { HiCheckCircle, HiClock, HiXCircle } from "react-icons/hi";
+import { HiCheckCircle, HiClock } from "react-icons/hi";
 
-export default function OrderPage() {
-  const { id } = useParams();
+function OrderConfirmationContent() {
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id");
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
-  const [paymentStatus, setPaymentStatus] = useState<"pending" | "paid" | "failed">("pending");
+  const [paymentStatus, setPaymentStatus] = useState<"pending" | "paid">("pending");
 
   useEffect(() => {
-    getOrder(id as string)
+    if (!id) return;
+    getOrder(id)
       .then((res) => {
         const o = res.data.order;
         setOrder(o);
-        if (o.isPaid) {
-          setPaymentStatus("paid");
-        }
+        if (o.isPaid) setPaymentStatus("paid");
       })
       .finally(() => setLoading(false));
   }, [id]);
 
-  // Poll payment status every 5 seconds until paid (max 2 minutes)
   useEffect(() => {
-    if (paymentStatus === "paid") return;
-
+    if (!id || paymentStatus === "paid") return;
     let attempts = 0;
     const interval = setInterval(async () => {
       attempts++;
       try {
-        const res = await getPaymentStatus(id as string);
+        const res = await getPaymentStatus(id);
         if (res.data.isPaid) {
           setPaymentStatus("paid");
-          // Refresh order data
-          const orderRes = await getOrder(id as string);
+          const orderRes = await getOrder(id);
           setOrder(orderRes.data.order);
           clearInterval(interval);
         }
-      } catch {
-        // silently ignore poll errors
-      }
-      if (attempts >= 24) clearInterval(interval); // stop after 2 minutes
+      } catch { /* ignore */ }
+      if (attempts >= 24) clearInterval(interval);
     }, 5000);
-
     return () => clearInterval(interval);
   }, [id, paymentStatus]);
 
@@ -109,5 +101,17 @@ export default function OrderPage() {
         Continue Shopping
       </Link>
     </div>
+  );
+}
+
+export default function OrderConfirmationPage() {
+  return (
+    <Suspense fallback={
+      <div className="pt-28 min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-black border-t-transparent animate-spin" />
+      </div>
+    }>
+      <OrderConfirmationContent />
+    </Suspense>
   );
 }
